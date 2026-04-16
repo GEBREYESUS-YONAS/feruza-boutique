@@ -8,7 +8,7 @@ import Contact from './pages/Contact';
 
 // 2. Data for the Home Page (The "Database")
 const GIFTS = [
-  { id: 1, name: "Golden Bloom Bouquet", price: 150000, image: "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=500" },
+  { id: 1, name: "Golden Bloom Bouquet", price: 7770000, image: "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=500" },
   { id: 2, name: "Luxury Chocolate Box", price: 85000, image: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=500" },
   { id: 3, name: "Premium Fruit Basket", price: 120000, image: "https://images.unsplash.com/photo-1543157145-f78c636d023d?w=500" },
   { id: 4, name: "Premium Perfume", price: 250000, image: "https://images.unsplash.com/photo-1541643600914-78b084683601?w=500" }
