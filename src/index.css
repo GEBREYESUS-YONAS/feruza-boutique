@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+:root {
+  --feruza-gold: #c5a059;
+  --feruza-black: #1a1a1a;
+  --feruza-cream: #fdfbf7;
+}
+
+body {
+  margin: 0;
+  background-color: var(--feruza-cream);
+  font-family: 'serif';
+}
