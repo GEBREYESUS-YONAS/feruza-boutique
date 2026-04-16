@@ -82,7 +82,7 @@ const CustomOrder = () => {
 
   const handleSend = () => {
     const message = `Hello Feruza, I want to build a custom package with: \n- ${selections.join('\n- ')} \n\nAdditional Note: ${note}`;
-    window.open(`https://wa.me/256700000000?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/00447456329886?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (
