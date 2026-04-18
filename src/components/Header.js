@@ -1,28 +1,98 @@
-import React from 'react';
-import { Link } from 'react-router-dom'; // Use Link for internal navigation
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
-const Header = () => {
-  const linkStyle = {
-    margin: '0 15px',
-    textDecoration: 'none',
-    color: '#1a1a1a',
-    fontSize: '12px',
-    letterSpacing: '2px',
-    textTransform: 'uppercase',
-    fontFamily: "'Inter', sans-serif"
+const Header = ({ user, cart, onCartClick }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const navStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '15px 5%',
+    backgroundColor: '#fff',
+    borderBottom: '1px solid #f2f2f2',
+    position: 'sticky',
+    top: 0,
+    zIndex: 1000
+  };
+
+  const mobileMenuStyle = {
+    display: isOpen ? 'flex' : 'none',
+    flexDirection: 'column',
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    width: '100%',
+    backgroundColor: '#fff',
+    padding: '20px 0',
+    boxShadow: '0 10px 10px rgba(0,0,0,0.05)',
+    textAlign: 'center',
+    gap: '20px'
   };
 
   return (
-    <nav style={{ padding: '20px 40px', display: 'flex', justifyContent: 'space-between', backgroundColor: '#fdfbf7', borderBottom: '1px solid #eee' }}>
-      <Link to="/" style={{ ...linkStyle, fontSize: '24px', fontWeight: 'bold', fontFamily: "'Playfair Display', serif" }}>
+    <nav style={navStyle}>
+      {/* Hamburger Icon */}
+      <div onClick={() => setIsOpen(!isOpen)} style={{ cursor: 'pointer', fontSize: '24px' }} className="mobile-menu-icon">
+        {isOpen ? '✕' : '☰'}
+      </div>
+
+      {/* Brand Logo */}
+      <Link to="/" style={{ textDecoration: 'none', color: '#1a1a1a', fontSize: '22px', fontWeight: '700', letterSpacing: '3px', fontFamily: 'Playfair Display' }}>
         FERUZA
       </Link>
-      <div>
-        <Link to="/" style={linkStyle}>Home</Link>
-        <Link to="/contact" style={linkStyle}>Contact</Link>
+
+      {/* Cart & Account Icons */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        
+        {/* Cart Icon - Now opens the Sidebar */}
+        <div onClick={onCartClick} style={{ position: 'relative', cursor: 'pointer' }}>
+          <span style={{ fontSize: '22px' }}>🛒</span>
+          {cart && cart.length > 0 && (
+            <span style={{
+              position: 'absolute', top: '-8px', right: '-10px',
+              backgroundColor: '#c5a059', color: 'white',
+              borderRadius: '50%', padding: '2px 6px', fontSize: '10px', fontWeight: 'bold'
+            }}>
+              {cart.length}
+            </span>
+          )}
+        </div>
+
+        {/* User Icon */}
+        <Link to="/account" style={{ color: '#1a1a1a', textDecoration: 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ fontSize: '20px' }}>👤</span>
+            <span style={{ fontSize: '11px', display: 'none' }} className="desktop-text">
+              {user ? 'ACCOUNT' : 'LOGIN'}
+            </span>
+          </div>
+        </Link>
       </div>
+
+      {/* Navigation Links */}
+      <div style={mobileMenuStyle}>
+        <Link to="/" onClick={() => setIsOpen(false)} style={linkStyle}>SHOP ALL</Link>
+        <Link to="/contact" onClick={() => setIsOpen(false)} style={linkStyle}>CONTACT</Link>
+        <Link to="/account" onClick={() => setIsOpen(false)} style={linkStyle}>{user ? 'MY PROFILE' : 'LOGIN'}</Link>
+      </div>
+
+      <style>{`
+        @media (min-width: 768px) {
+          .mobile-menu-icon { display: none !important; }
+          .desktop-text { display: inline !important; }
+        }
+      `}</style>
     </nav>
   );
+};
+
+const linkStyle = {
+  textDecoration: 'none',
+  color: '#1a1a1a',
+  fontWeight: '500',
+  fontSize: '13px',
+  letterSpacing: '1px'
 };
 
 export default Header;
