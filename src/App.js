@@ -99,7 +99,7 @@ const Home = ({ addToCart }) => {
       
       {/* HERO SECTION */}
       <div style={{ height: '50vh', backgroundImage: 'linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=1200&q=80")', backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: '#fff' }}>
-        <h1 style={{ fontFamily: 'Playfair Display', fontSize: '3rem', margin: 0 }}>Feruza Boutique</h1>
+        <h1 style={{ fontFamily: 'Playfair Display', fontSize: '3rem', margin: 0 }}>Feruza Gift Delivery</h1>
         <p style={{ letterSpacing: '3px', fontSize: '10px', textTransform: 'uppercase', marginTop: '10px' }}>Luxury Gifting & Florals</p>
       </div>
 
@@ -289,7 +289,7 @@ function App() {
           </Routes>
         </div>
 
-        <footer style={{ padding: '30px', textAlign: 'center', fontSize: '10px', color: '#888', borderTop: '1px solid #eee' }}>© 2026 FERUZA BOUTIQUE</footer>
+        <footer style={{ padding: '30px', textAlign: 'center', fontSize: '10px', color: '#888', borderTop: '1px solid #eee' }}>© 2026 FERUZA GIFT DELIVERY</footer>
       </div>
     </Router>
   );
