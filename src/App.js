@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 // Firebase Imports
@@ -466,7 +466,6 @@ const Home = ({ addToCart, searchQuery, showPackages, onPackagesSeen }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Packages');
-  const packagesRef = useRef(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -484,7 +483,7 @@ const Home = ({ addToCart, searchQuery, showPackages, onPackagesSeen }) => {
       setFilter('Packages');
       onPackagesSeen();
     }
-  }, [showPackages]);
+  }, [showPackages, onPackagesSeen]);
 
   // Ordered categories — Packages first
   const categories = ['Packages', 'All', 'Flowers', 'Perfumes', 'Photo Frames', 'Cakes', 'Custom'];
@@ -641,9 +640,9 @@ function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [searchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showPackages, setShowPackages] = useState(false);
-  const ADMIN_UID = "8ZcWoKlxRCftEfXa2fYjRkhFIlu2";
+  const ADMIN_UID = "PASTE_YOUR_UID_HERE";
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, u => setUser(u));
@@ -652,6 +651,7 @@ function App() {
 
   const addToCart = (p) => { setCart(c => [...c, p]); setIsCartOpen(true); };
   const removeFromCart = (i) => { setCart(c => c.filter((_, idx) => idx !== i)); };
+  const handlePackagesSeen = useCallback(() => setShowPackages(false), []);
 
   return (
     <Router>
@@ -686,7 +686,7 @@ function App() {
                 addToCart={addToCart}
                 searchQuery={searchQuery}
                 showPackages={showPackages}
-                onPackagesSeen={() => setShowPackages(false)}
+                onPackagesSeen={handlePackagesSeen}
               />
             } />
             <Route path="/account" element={user ? <UserProfile user={user} /> : <Auth />} />
