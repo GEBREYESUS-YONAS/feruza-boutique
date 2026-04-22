@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const Header = ({ user, cart, onCartClick }) => {
+const Header = ({ user, cart, onCartOpen, onPackagesClick, onSearch }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navStyle = {
@@ -86,7 +86,13 @@ const Header = ({ user, cart, onCartClick }) => {
     </nav>
   );
 };
-
+<input
+  autoFocus
+  type="search"
+  placeholder="Search gifts, flowers, cakes..."
+  style={{ ...inputStyle, padding: '8px 14px', fontSize: '13px' }}
+  onChange={e => onSearch(e.target.value)}   // ← add this
+/>
 const linkStyle = {
   textDecoration: 'none',
   color: '#1a1a1a',
