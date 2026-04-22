@@ -116,6 +116,13 @@ const useFlutterwaveScript = () => {
 // ============================================================
 // HEADER
 // ============================================================
+<Header
+  user={user}
+  cart={cart}
+  onCartOpen={() => setIsCartOpen(o => !o)}
+  onPackagesClick={() => setShowPackages(true)}
+  onSearch={setSearchQuery}   // ← add this
+/>
 const Header = ({ user, cart, onCartOpen, onPackagesClick }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -793,7 +800,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [searchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showPackages, setShowPackages] = useState(false);
   const ADMIN_UID = "8ZcWoKlxRCftEfXa2fYjRkhFIlu2";
 
