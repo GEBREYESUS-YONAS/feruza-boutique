@@ -793,7 +793,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery] = useState('');
   const [showPackages, setShowPackages] = useState(false);
   const ADMIN_UID = "PASTE_YOUR_UID_HERE";
 
