@@ -642,7 +642,7 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
  const [searchQuery] = useState('');
   const [showPackages, setShowPackages] = useState(false);
-  const ADMIN_UID = "PASTE_YOUR_UID_HERE";
+  const ADMIN_UID = "8ZcWoKlxRCftEfXa2fYjRkhFIlu2";
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, u => setUser(u));
