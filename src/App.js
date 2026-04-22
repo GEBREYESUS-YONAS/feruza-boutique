@@ -14,7 +14,7 @@ import Contact from './pages/Contact';
 // ⚠️  CONFIGURATION — fill these in
 // ============================================================
 const FLW_PUBLIC_KEY = 'YOUR_FLUTTERWAVE_PUBLIC_KEY'; // from dashboard.flutterwave.com
-const WHATSAPP_NUMBER = '256700000000';               // your WhatsApp number with country code
+const WHATSAPP_NUMBER = '00256704339691';               // your WhatsApp number with country code
 
 // ============================================================
 // PACKAGES DATA
@@ -795,7 +795,7 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery] = useState('');
   const [showPackages, setShowPackages] = useState(false);
-  const ADMIN_UID = "PASTE_YOUR_UID_HERE";
+  const ADMIN_UID = "8ZcWoKlxRCftEfXa2fYjRkhFIlu2";
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, u => setUser(u));
