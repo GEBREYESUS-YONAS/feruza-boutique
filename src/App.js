@@ -11,7 +11,13 @@ import Auth from './components/Auth';
 import Contact from './pages/Contact';
 
 // ============================================================
-// PACKAGES DATA — hardcoded, always available
+// ⚠️  CONFIGURATION — fill these in
+// ============================================================
+const FLW_PUBLIC_KEY = 'YOUR_FLUTTERWAVE_PUBLIC_KEY'; // from dashboard.flutterwave.com
+const WHATSAPP_NUMBER = '256700000000';               // your WhatsApp number with country code
+
+// ============================================================
+// PACKAGES DATA
 // ============================================================
 const PACKAGES = [
   {
@@ -81,12 +87,29 @@ const CHECKLIST_OPTIONS = {
 // ============================================================
 const inputStyle = {
   padding: '12px', border: '1px solid #ddd', borderRadius: '6px',
-  fontSize: '14px', outline: 'none', boxSizing: 'border-box', width: '100%'
+  fontSize: '14px', outline: 'none', boxSizing: 'border-box', width: '100%',
 };
 const btnStyle = {
   padding: '14px 20px', background: '#1a1a1a', color: '#fff',
   border: 'none', cursor: 'pointer', fontWeight: 'bold',
-  fontSize: '11px', letterSpacing: '1px', borderRadius: '4px', width: '100%'
+  fontSize: '11px', letterSpacing: '1px', borderRadius: '6px', width: '100%',
+};
+
+
+// ============================================================
+// LOAD FLUTTERWAVE SCRIPT (once, on mount)
+// ============================================================
+const useFlutterwaveScript = () => {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (document.getElementById('flw-script')) { setReady(true); return; }
+    const script = document.createElement('script');
+    script.id = 'flw-script';
+    script.src = 'https://checkout.flutterwave.com/v3.js';
+    script.onload = () => setReady(true);
+    document.body.appendChild(script);
+  }, []);
+  return ready;
 };
 
 
@@ -96,7 +119,6 @@ const btnStyle = {
 const Header = ({ user, cart, onCartOpen, onPackagesClick }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -119,28 +141,21 @@ const Header = ({ user, cart, onCartOpen, onPackagesClick }) => {
       borderBottom: '1px solid #eee', background: '#fff',
       position: 'sticky', top: 0, zIndex: 1000,
     }}>
-
-      {/* LOGO */}
       <Link to="/" style={{ textDecoration: 'none', color: '#000', fontFamily: 'Playfair Display', fontSize: '20px', letterSpacing: '2px', flexShrink: 0 }}>
         FERUZA
       </Link>
 
-      {/* INLINE SEARCH */}
       {isSearchOpen && (
         <div style={{ flex: 1, margin: '0 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <input autoFocus type="search" placeholder="Search gifts, flowers, cakes..."
-            value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
             style={{ ...inputStyle, padding: '8px 14px', fontSize: '13px' }} />
-          <button onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
+          <button onClick={() => setIsSearchOpen(false)}
             style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999', flexShrink: 0 }}>✕</button>
         </div>
       )}
 
-      {/* RIGHT ICONS */}
       {!isSearchOpen && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-
-          {/* PACKAGES — always visible, gold pill button */}
           <button onClick={onPackagesClick}
             style={{
               background: '#c5a059', color: '#fff', border: 'none',
@@ -151,11 +166,9 @@ const Header = ({ user, cart, onCartOpen, onPackagesClick }) => {
             🎁 PACKAGES
           </button>
 
-          {/* SEARCH */}
           <button onClick={() => setIsSearchOpen(true)}
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', padding: '8px' }}>🔍</button>
 
-          {/* CART with badge */}
           <button onClick={onCartOpen}
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', padding: '8px', position: 'relative' }}>
             🛍️
@@ -169,7 +182,6 @@ const Header = ({ user, cart, onCartOpen, onPackagesClick }) => {
             )}
           </button>
 
-          {/* HAMBURGER */}
           <div ref={menuRef} style={{ position: 'relative' }}>
             <button onClick={() => setMenuOpen(o => !o)}
               style={{
@@ -179,7 +191,6 @@ const Header = ({ user, cart, onCartOpen, onPackagesClick }) => {
               }}>
               {menuOpen ? '✕' : '☰'}
             </button>
-
             {menuOpen && (
               <div style={{
                 position: 'absolute', top: '48px', right: 0, background: '#fff',
@@ -208,122 +219,177 @@ const Header = ({ user, cart, onCartOpen, onPackagesClick }) => {
 
 
 // ============================================================
-// PACKAGES SECTION
-// ============================================================
-const PackagesSection = () => (
-  <div style={{ padding: '50px 5%', backgroundColor: '#fdfbf7' }}>
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h2 style={{ fontFamily: 'Playfair Display', fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', margin: '0 0 10px' }}>Curated Packages</h2>
-        <p style={{ color: '#888', fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase' }}>Thoughtfully assembled for every occasion</p>
-      </div>
-
-      {/* PACKAGES GRID — 2 cols mobile, 3 cols desktop */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
-        gap: '24px',
-      }}>
-        {PACKAGES.map(pkg => (
-          <div key={pkg.id} style={{
-            background: '#fff', borderRadius: '12px', overflow: 'hidden',
-            boxShadow: '0 2px 16px rgba(0,0,0,0.06)', transition: 'transform 0.3s, box-shadow 0.3s',
-            display: 'flex', flexDirection: 'column',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.06)'; }}
-          >
-            {/* IMAGE */}
-            <div style={{ height: '200px', overflow: 'hidden', position: 'relative' }}>
-              <img src={pkg.image} alt={pkg.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              {/* EMOJI BADGE */}
-              <div style={{
-                position: 'absolute', top: '12px', right: '12px',
-                background: 'rgba(255,255,255,0.9)', borderRadius: '50%',
-                width: '38px', height: '38px', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', fontSize: '20px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              }}>{pkg.emoji}</div>
-            </div>
-
-            {/* CONTENT */}
-            <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', margin: '0 0 4px' }}>{pkg.name}</h3>
-              <p style={{ fontSize: '10px', letterSpacing: '2px', color: '#c5a059', textTransform: 'uppercase', margin: '0 0 10px' }}>{pkg.tagline}</p>
-              <p style={{ fontSize: '12px', color: '#666', lineHeight: '1.7', margin: '0 0 16px', flex: 1 }}>{pkg.description}</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <span style={{ fontWeight: 'bold', color: '#c5a059', fontSize: '13px' }}>{pkg.price}</span>
-              </div>
-              <button
-                onClick={() => window.open(`https://wa.me/256700000000?text=Hi! I'm interested in the *${pkg.name} Package* (${pkg.price}). Please share more details.`, '_blank')}
-                style={{ ...btnStyle, background: '#1a1a1a', padding: '12px', fontSize: '10px' }}>
-                ENQUIRE ON WHATSAPP
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
-
-// ============================================================
-// CART BOTTOM DRAWER — 2 steps
+// CART BOTTOM DRAWER — 3 steps
+//   Step 1 → Items list
+//   Step 2 → Delivery details (name, email, phone, address, date, slot)
+//   Step 3 → Payment choice: Card (Flutterwave) OR WhatsApp
 // ============================================================
 const CartDrawer = ({ isOpen, onClose, cart, removeFromCart }) => {
+  const flwReady = useFlutterwaveScript();
+
   const [step, setStep] = useState(1);
-  const [delivery, setDelivery] = useState({ location: '', time: 'Slot', date: '' });
-  const [error, setError] = useState('');
+  const [delivery, setDelivery] = useState({
+    name: '', email: '', phone: '', location: '', date: '', time: 'Choose a slot',
+  });
+  const [errors, setErrors] = useState({});
+  const [paymentStatus, setPaymentStatus] = useState(null); // null | 'success' | 'failed'
+
   const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
 
+  // Reset everything when drawer closes
   useEffect(() => {
-    if (!isOpen) { const t = setTimeout(() => { setStep(1); setError(''); }, 400); return () => clearTimeout(t); }
+    if (!isOpen) {
+      const t = setTimeout(() => {
+        setStep(1);
+        setErrors({});
+        setPaymentStatus(null);
+      }, 400);
+      return () => clearTimeout(t);
+    }
   }, [isOpen]);
 
-  const handleWhatsApp = () => {
-    if (!delivery.location || delivery.time === 'Slot' || !delivery.date) {
-      setError('Please fill in all delivery details.'); return;
-    }
-    const itemList = cart.map(item => `- ${item.name}`).join('%0A');
-    const msg = `*NEW ORDER: FERUZA*%0A%0A*Items:*%0A${itemList}%0A%0A*Deliver to:* ${delivery.location}%0A*Date:* ${delivery.date}%0A*Time:* ${delivery.time}%0A%0A*Total: UGX ${total.toLocaleString()}*`;
-    window.open(`https://wa.me/256700000000?text=${msg}`, '_blank');
+  // Basic validation for step 2
+  const validateDelivery = () => {
+    const e = {};
+    if (!delivery.name.trim()) e.name = 'Required';
+    if (!delivery.email.trim() || !/\S+@\S+\.\S+/.test(delivery.email)) e.email = 'Valid email required';
+    if (!delivery.phone.trim()) e.phone = 'Required';
+    if (!delivery.location.trim()) e.location = 'Required';
+    if (!delivery.date) e.date = 'Required';
+    if (delivery.time === 'Choose a slot') e.time = 'Please choose a slot';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const DRAWER_HEIGHT = '400px';
+  const handleProceedToPayment = () => {
+    if (validateDelivery()) setStep(3);
+  };
+
+  // ── Flutterwave card payment ──
+  const handleCardPayment = () => {
+    if (!flwReady || !window.FlutterwaveCheckout) {
+      alert('Payment is loading, please try again in a moment.');
+      return;
+    }
+    const txRef = `FERUZA-${Date.now()}`;
+    window.FlutterwaveCheckout({
+      public_key: FLW_PUBLIC_KEY,
+      tx_ref: txRef,
+      amount: total,
+      currency: 'UGX',
+      payment_options: 'card,mobilemoneyuganda',
+      customer: {
+        email: delivery.email,
+        phone_number: delivery.phone,
+        name: delivery.name,
+      },
+      customizations: {
+        title: 'Feruza Gift Delivery',
+        description: cart.map(i => i.name).join(', '),
+        logo: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=80&h=80&fit=crop',
+      },
+      meta: {
+        delivery_location: delivery.location,
+        delivery_date: delivery.date,
+        delivery_time: delivery.time,
+      },
+      callback: (response) => {
+        if (response.status === 'successful' || response.status === 'completed') {
+          setPaymentStatus('success');
+          // Optionally save order to Firestore here
+        } else {
+          setPaymentStatus('failed');
+        }
+      },
+      onclose: () => {
+        // User closed modal without completing — stay on step 3
+      },
+    });
+  };
+
+  // ── WhatsApp order ──
+  const handleWhatsApp = () => {
+    const itemList = cart.map(i => `- ${i.name}`).join('%0A');
+    const msg = [
+      `*NEW ORDER: FERUZA*`,
+      ``,
+      `*Customer:* ${delivery.name}`,
+      `*Phone:* ${delivery.phone}`,
+      `*Email:* ${delivery.email}`,
+      ``,
+      `*Items:*`,
+      cart.map(i => `- ${i.name}`).join('\n'),
+      ``,
+      `*Deliver to:* ${delivery.location}`,
+      `*Date:* ${delivery.date}`,
+      `*Time:* ${delivery.time}`,
+      ``,
+      `*Total: UGX ${total.toLocaleString()}*`,
+    ].join('%0A');
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
+  };
+
+  const DRAWER_HEIGHT = step === 2 ? '480px' : '420px';
+
+  const fieldError = (key) => errors[key]
+    ? <span style={{ color: '#e74c3c', fontSize: '10px', marginTop: '3px', display: 'block' }}>{errors[key]}</span>
+    : null;
+
+  const label = (text) => (
+    <label style={{ fontSize: '10px', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '5px' }}>
+      {text}
+    </label>
+  );
 
   return (
     <>
       <div style={{
-        position: 'fixed', bottom: isOpen ? 0 : '-500px', left: 0, right: 0,
+        position: 'fixed', bottom: isOpen ? 0 : '-600px', left: 0, right: 0,
         height: DRAWER_HEIGHT, backgroundColor: '#fff', zIndex: 2000,
         transition: 'bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         borderTop: '2px solid #c5a059', boxShadow: '0 -8px 30px rgba(0,0,0,0.1)',
         borderRadius: '18px 18px 0 0', display: 'flex', flexDirection: 'column',
       }}>
-        {/* HANDLE + HEADER */}
+
+        {/* ── HANDLE + HEADER ── */}
         <div style={{ padding: '10px 20px 0', borderBottom: '1px solid #f5f5f5', flexShrink: 0 }}>
           <div style={{ width: '36px', height: '4px', background: '#e0e0e0', borderRadius: '2px', margin: '0 auto 10px' }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {step === 2 && (
-                <button onClick={() => setStep(1)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '20px', padding: 0 }}>←</button>
+              {step > 1 && step < 4 && !paymentStatus && (
+                <button onClick={() => setStep(s => s - 1)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '20px', padding: 0, lineHeight: 1 }}>←</button>
               )}
               <h2 style={{ margin: 0, fontFamily: 'Playfair Display', fontSize: '18px' }}>
-                {step === 1
-                  ? <>Your Bag {cart.length > 0 && <span style={{ color: '#c5a059', fontSize: '13px' }}>({cart.length})</span>}</>
-                  : 'Delivery Details'}
+                {paymentStatus === 'success' ? 'Order Confirmed 🎉'
+                  : paymentStatus === 'failed' ? 'Payment Failed'
+                  : step === 1 ? <>Your Bag {cart.length > 0 && <span style={{ color: '#c5a059', fontSize: '13px' }}>({cart.length})</span>}</>
+                  : step === 2 ? 'Delivery Details'
+                  : 'How would you like to pay?'}
               </h2>
             </div>
             <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#bbb' }}>✕</button>
           </div>
+
+          {/* STEP INDICATOR */}
+          {!paymentStatus && (
+            <div style={{ display: 'flex', gap: '6px', paddingBottom: '12px' }}>
+              {[1, 2, 3].map(s => (
+                <div key={s} style={{
+                  flex: 1, height: '3px', borderRadius: '2px',
+                  background: step >= s ? '#c5a059' : '#eee',
+                  transition: 'background 0.3s',
+                }} />
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* BODY */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '15px 20px' }}>
-          {step === 1 && (
+        {/* ── BODY ── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+
+          {/* STEP 1 — Items */}
+          {step === 1 && !paymentStatus && (
             cart.length === 0
               ? <div style={{ textAlign: 'center', paddingTop: '40px', color: '#bbb', fontSize: '13px' }}>
                   <div style={{ fontSize: '40px', marginBottom: '10px' }}>🛍️</div>Your bag is empty
@@ -341,64 +407,218 @@ const CartDrawer = ({ isOpen, onClose, cart, removeFromCart }) => {
                 ))
           )}
 
-          {step === 2 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {error && <p style={{ color: '#e74c3c', fontSize: '11px', margin: 0, padding: '8px 12px', background: '#fff5f5', borderRadius: '6px' }}>{error}</p>}
+          {/* STEP 2 — Delivery form */}
+          {step === 2 && !paymentStatus && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ flex: 1 }}>
+                  {label('FULL NAME')}
+                  <input type="text" placeholder="Jane Doe" value={delivery.name}
+                    onChange={e => { setDelivery({ ...delivery, name: e.target.value }); setErrors({ ...errors, name: '' }); }}
+                    style={{ ...inputStyle, borderColor: errors.name ? '#e74c3c' : '#ddd' }} />
+                  {fieldError('name')}
+                </div>
+                <div style={{ flex: 1 }}>
+                  {label('PHONE')}
+                  <input type="tel" placeholder="+256 700 000 000" value={delivery.phone}
+                    onChange={e => { setDelivery({ ...delivery, phone: e.target.value }); setErrors({ ...errors, phone: '' }); }}
+                    style={{ ...inputStyle, borderColor: errors.phone ? '#e74c3c' : '#ddd' }} />
+                  {fieldError('phone')}
+                </div>
+              </div>
               <div>
-                <label style={{ fontSize: '10px', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '6px' }}>DELIVERY LOCATION</label>
-                <input type="text" placeholder="e.g. Kampala, Kololo — near X landmark"
-                  value={delivery.location}
-                  onChange={e => { setDelivery({ ...delivery, location: e.target.value }); setError(''); }}
-                  style={inputStyle} />
+                {label('EMAIL (for payment receipt)')}
+                <input type="email" placeholder="you@example.com" value={delivery.email}
+                  onChange={e => { setDelivery({ ...delivery, email: e.target.value }); setErrors({ ...errors, email: '' }); }}
+                  style={{ ...inputStyle, borderColor: errors.email ? '#e74c3c' : '#ddd' }} />
+                {fieldError('email')}
+              </div>
+              <div>
+                {label('DELIVERY LOCATION')}
+                <input type="text" placeholder="e.g. Kampala, Kololo — near X landmark" value={delivery.location}
+                  onChange={e => { setDelivery({ ...delivery, location: e.target.value }); setErrors({ ...errors, location: '' }); }}
+                  style={{ ...inputStyle, borderColor: errors.location ? '#e74c3c' : '#ddd' }} />
+                {fieldError('location')}
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '10px', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '6px' }}>DATE</label>
+                  {label('DATE')}
                   <input type="date" value={delivery.date}
-                    onChange={e => { setDelivery({ ...delivery, date: e.target.value }); setError(''); }}
-                    style={inputStyle} />
+                    onChange={e => { setDelivery({ ...delivery, date: e.target.value }); setErrors({ ...errors, date: '' }); }}
+                    style={{ ...inputStyle, borderColor: errors.date ? '#e74c3c' : '#ddd' }} />
+                  {fieldError('date')}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '10px', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '6px' }}>TIME SLOT</label>
+                  {label('TIME SLOT')}
                   <select value={delivery.time}
-                    onChange={e => { setDelivery({ ...delivery, time: e.target.value }); setError(''); }}
-                    style={inputStyle}>
-                    <option value="Slot">Choose a slot</option>
+                    onChange={e => { setDelivery({ ...delivery, time: e.target.value }); setErrors({ ...errors, time: '' }); }}
+                    style={{ ...inputStyle, borderColor: errors.time ? '#e74c3c' : '#ddd' }}>
+                    <option disabled>Choose a slot</option>
                     <option>Morning (8am–12pm)</option>
                     <option>Afternoon (12pm–5pm)</option>
                     <option>Evening (5pm–9pm)</option>
                   </select>
+                  {fieldError('time')}
                 </div>
               </div>
             </div>
           )}
-        </div>
 
-        {/* FOOTER */}
-        <div style={{ padding: '12px 20px 20px', borderTop: '1px solid #f5f5f5', flexShrink: 0 }}>
-          {cart.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '14px' }}>
-              <span style={{ color: '#888' }}>Order Total</span>
-              <b style={{ color: '#c5a059', fontSize: '15px' }}>UGX {total.toLocaleString()}</b>
+          {/* STEP 3 — Payment options */}
+          {step === 3 && !paymentStatus && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingTop: '8px' }}>
+
+              {/* Order summary pill */}
+              <div style={{ background: '#fdfbf7', border: '1px solid #f0ece3', borderRadius: '8px', padding: '12px 16px', fontSize: '12px', color: '#666' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span>{cart.length} item{cart.length > 1 ? 's' : ''} · {delivery.date} · {delivery.time}</span>
+                </div>
+                <div style={{ fontSize: '11px', color: '#999' }}>📍 {delivery.location}</div>
+              </div>
+
+              {/* Card payment button */}
+              <button onClick={handleCardPayment}
+                style={{
+                  ...btnStyle,
+                  background: 'linear-gradient(135deg, #1a1a1a 0%, #333 100%)',
+                  padding: '18px', fontSize: '13px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
+                }}>
+                <span style={{ fontSize: '20px' }}>💳</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontWeight: 'bold', letterSpacing: '1px' }}>PAY BY CARD OR MOBILE MONEY</div>
+                  <div style={{ fontSize: '10px', opacity: 0.7, fontWeight: 'normal', marginTop: '2px' }}>Visa · Mastercard · MTN · Airtel · Secure checkout</div>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#ccc', fontSize: '11px' }}>
+                <div style={{ flex: 1, height: '1px', background: '#eee' }} />
+                OR
+                <div style={{ flex: 1, height: '1px', background: '#eee' }} />
+              </div>
+
+              {/* WhatsApp button */}
+              <button onClick={handleWhatsApp}
+                style={{
+                  ...btnStyle,
+                  background: '#25D366',
+                  padding: '18px', fontSize: '13px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                }}>
+                <span style={{ fontSize: '20px' }}>📲</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontWeight: 'bold', letterSpacing: '1px' }}>ORDER VIA WHATSAPP</div>
+                  <div style={{ fontSize: '10px', opacity: 0.85, fontWeight: 'normal', marginTop: '2px' }}>We'll confirm & arrange payment manually</div>
+                </div>
+              </button>
+
+              <p style={{ textAlign: 'center', fontSize: '10px', color: '#bbb', margin: 0 }}>
+                🔒 Card payments are secured by Flutterwave
+              </p>
             </div>
           )}
-          {step === 1
-            ? <button onClick={() => cart.length > 0 && setStep(2)} disabled={cart.length === 0}
+
+          {/* SUCCESS STATE */}
+          {paymentStatus === 'success' && (
+            <div style={{ textAlign: 'center', padding: '20px 10px' }}>
+              <div style={{ fontSize: '56px', marginBottom: '16px' }}>🎉</div>
+              <h3 style={{ fontFamily: 'Playfair Display', margin: '0 0 10px', fontSize: '20px' }}>Payment Confirmed!</h3>
+              <p style={{ color: '#666', fontSize: '13px', lineHeight: '1.7', margin: '0 0 20px' }}>
+                Thank you, <b>{delivery.name}</b>! Your order is confirmed and will be delivered to <b>{delivery.location}</b> on <b>{delivery.date}</b> ({delivery.time}).
+              </p>
+              <p style={{ color: '#888', fontSize: '11px' }}>A confirmation will be sent to <b>{delivery.email}</b></p>
+            </div>
+          )}
+
+          {/* FAILED STATE */}
+          {paymentStatus === 'failed' && (
+            <div style={{ textAlign: 'center', padding: '20px 10px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>😔</div>
+              <h3 style={{ fontFamily: 'Playfair Display', margin: '0 0 10px' }}>Payment Unsuccessful</h3>
+              <p style={{ color: '#666', fontSize: '13px', margin: '0 0 20px' }}>Something went wrong with your payment. You can try again or order via WhatsApp.</p>
+              <button onClick={() => setPaymentStatus(null)} style={{ ...btnStyle, marginBottom: '10px' }}>TRY AGAIN</button>
+              <button onClick={handleWhatsApp} style={{ ...btnStyle, background: '#25D366' }}>ORDER VIA WHATSAPP</button>
+            </div>
+          )}
+        </div>
+
+        {/* ── FOOTER ── */}
+        {!paymentStatus && (
+          <div style={{ padding: '12px 20px 20px', borderTop: '1px solid #f5f5f5', flexShrink: 0 }}>
+            {cart.length > 0 && step !== 3 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '14px' }}>
+                <span style={{ color: '#888' }}>Order Total</span>
+                <b style={{ color: '#c5a059', fontSize: '15px' }}>UGX {total.toLocaleString()}</b>
+              </div>
+            )}
+
+            {step === 1 && (
+              <button onClick={() => cart.length > 0 && setStep(2)} disabled={cart.length === 0}
                 style={{ ...btnStyle, background: cart.length === 0 ? '#ddd' : '#1a1a1a', cursor: cart.length === 0 ? 'not-allowed' : 'pointer' }}>
                 PROCEED TO CHECKOUT →
               </button>
-            : <button onClick={handleWhatsApp} style={{ ...btnStyle, background: '#25D366' }}>
-                📲 CONFIRM ORDER ON WHATSAPP
+            )}
+
+            {step === 2 && (
+              <button onClick={handleProceedToPayment} style={btnStyle}>
+                CHOOSE PAYMENT METHOD →
               </button>
-          }
-        </div>
+            )}
+          </div>
+        )}
+
+        {/* Success close button */}
+        {paymentStatus === 'success' && (
+          <div style={{ padding: '12px 20px 20px', flexShrink: 0 }}>
+            <button onClick={onClose} style={{ ...btnStyle, background: '#c5a059' }}>CLOSE</button>
+          </div>
+        )}
       </div>
 
-      {/* SPACER */}
+      {/* PAGE SPACER */}
       <div style={{ height: isOpen ? DRAWER_HEIGHT : '0px', transition: 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1)', flexShrink: 0 }} />
     </>
   );
 };
+
+
+// ============================================================
+// PACKAGES SECTION
+// ============================================================
+const PackagesSection = () => (
+  <div style={{ padding: '50px 5%', backgroundColor: '#fdfbf7' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h2 style={{ fontFamily: 'Playfair Display', fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', margin: '0 0 10px' }}>Curated Packages</h2>
+        <p style={{ color: '#888', fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase' }}>Thoughtfully assembled for every occasion</p>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '24px' }}>
+        {PACKAGES.map(pkg => (
+          <div key={pkg.id} style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 16px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s, box-shadow 0.3s' }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.06)'; }}>
+            <div style={{ height: '200px', overflow: 'hidden', position: 'relative' }}>
+              <img src={pkg.image} alt={pkg.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(255,255,255,0.9)', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>{pkg.emoji}</div>
+            </div>
+            <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', margin: '0 0 4px' }}>{pkg.name}</h3>
+              <p style={{ fontSize: '10px', letterSpacing: '2px', color: '#c5a059', textTransform: 'uppercase', margin: '0 0 10px' }}>{pkg.tagline}</p>
+              <p style={{ fontSize: '12px', color: '#666', lineHeight: '1.7', margin: '0 0 16px', flex: 1 }}>{pkg.description}</p>
+              <div style={{ fontWeight: 'bold', color: '#c5a059', fontSize: '13px', marginBottom: '16px' }}>{pkg.price}</div>
+              <button onClick={() => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=Hi! I'm interested in the *${pkg.name} Package* (${pkg.price}). Please share more details.`, '_blank')}
+                style={{ ...btnStyle, padding: '12px', fontSize: '10px' }}>
+                ENQUIRE ON WHATSAPP
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 
 // ============================================================
@@ -421,7 +641,7 @@ const CustomOrder = () => {
           ))}
         </div>
       ))}
-      <button onClick={() => window.open(`https://wa.me/256700000000?text=Custom Enq: ${selections.join(', ')}`)}
+      <button onClick={() => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=Custom Enq: ${selections.join(', ')}`)}
         style={{ ...btnStyle, background: '#c5a059', padding: '18px' }}>SEND TO WHATSAPP</button>
     </div>
   );
@@ -429,21 +649,13 @@ const CustomOrder = () => {
 
 
 // ============================================================
-// PRODUCT CARD — mobile-friendly
+// PRODUCT CARD
 // ============================================================
 const ProductCard = ({ item, addToCart }) => {
   const isOutOfStock = item.stock <= 0;
   return (
-    <div className="product-card" style={{
-      background: '#fff', textAlign: 'center', paddingBottom: '15px',
-      border: '1px solid #f2f2f2', borderRadius: '8px',
-      position: 'relative', overflow: 'hidden',
-    }}>
-      {isOutOfStock && (
-        <div style={{ position: 'absolute', top: '10px', left: '10px', background: '#ff4d4d', color: '#fff', padding: '4px 8px', fontSize: '9px', fontWeight: 'bold', zIndex: 10, borderRadius: '3px' }}>
-          SOLD OUT
-        </div>
-      )}
+    <div className="product-card" style={{ background: '#fff', textAlign: 'center', paddingBottom: '15px', border: '1px solid #f2f2f2', borderRadius: '8px', position: 'relative', overflow: 'hidden' }}>
+      {isOutOfStock && <div style={{ position: 'absolute', top: '10px', left: '10px', background: '#ff4d4d', color: '#fff', padding: '4px 8px', fontSize: '9px', fontWeight: 'bold', zIndex: 10, borderRadius: '3px' }}>SOLD OUT</div>}
       <div style={{ height: '200px', overflow: 'hidden', opacity: isOutOfStock ? 0.5 : 1 }}>
         <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
@@ -460,7 +672,6 @@ const ProductCard = ({ item, addToCart }) => {
 
 // ============================================================
 // HOME PAGE
-// Category order: Packages → All → Flowers → Perfumes → Photo Frames → Cakes → Custom
 // ============================================================
 const Home = ({ addToCart, searchQuery, showPackages, onPackagesSeen }) => {
   const [products, setProducts] = useState([]);
@@ -470,24 +681,18 @@ const Home = ({ addToCart, searchQuery, showPackages, onPackagesSeen }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "products"));
-        setProducts(querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+        const snap = await getDocs(collection(db, "products"));
+        setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       } finally { setLoading(false); }
     };
     fetchProducts();
   }, []);
 
-  // When header Packages button is clicked, switch to Packages tab
   useEffect(() => {
-    if (showPackages) {
-      setFilter('Packages');
-      onPackagesSeen();
-    }
+    if (showPackages) { setFilter('Packages'); onPackagesSeen(); }
   }, [showPackages, onPackagesSeen]);
 
-  // Ordered categories — Packages first
   const categories = ['Packages', 'All', 'Flowers', 'Perfumes', 'Photo Frames', 'Cakes', 'Custom'];
-
   const filteredProducts = products.filter(p => {
     const matchesCategory = filter === 'All' || p.category === filter;
     const matchesSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -498,70 +703,27 @@ const Home = ({ addToCart, searchQuery, showPackages, onPackagesSeen }) => {
 
   return (
     <div style={{ backgroundColor: '#fff', minHeight: '100vh' }}>
-
-      {/* HERO */}
-      <div style={{
-        height: '50vh',
-        backgroundImage: 'linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url("https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=1200&q=80")',
-        backgroundSize: 'cover', backgroundPosition: 'center',
-        display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: '#fff',
-        textAlign: 'center', padding: '0 20px',
-      }}>
+      <div style={{ height: '50vh', backgroundImage: 'linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url("https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=1200&q=80")', backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: '#fff', textAlign: 'center', padding: '0 20px' }}>
         <h1 style={{ fontFamily: 'Playfair Display', fontSize: 'clamp(1.8rem, 5vw, 3rem)', margin: '0 0 10px' }}>Feruza Gift Delivery</h1>
         <p style={{ letterSpacing: '3px', fontSize: '10px', textTransform: 'uppercase', margin: 0, opacity: 0.85 }}>Luxury Gifting & Florals · Kampala</p>
       </div>
 
-      {/* STICKY CATEGORY TABS */}
-      <div className="no-scrollbar" style={{
-        display: 'flex', gap: '0', overflowX: 'auto',
-        position: 'sticky', top: '65px', backgroundColor: '#fff',
-        zIndex: 900, borderBottom: '2px solid #f0f0f0',
-        padding: '0 5%',
-      }}>
+      <div className="no-scrollbar" style={{ display: 'flex', overflowX: 'auto', position: 'sticky', top: '65px', backgroundColor: '#fff', zIndex: 900, borderBottom: '2px solid #f0f0f0', padding: '0 5%' }}>
         {categories.map(cat => (
           <button key={cat} onClick={() => setFilter(cat)}
-            style={{
-              background: 'none', border: 'none',
-              borderBottom: filter === cat ? '2px solid #c5a059' : '2px solid transparent',
-              color: filter === cat ? '#1a1a1a' : '#999',
-              padding: '14px 16px', fontSize: '10px', fontWeight: 'bold',
-              cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '1px',
-              marginBottom: '-2px', transition: 'color 0.2s',
-              // Packages tab gets a gold tint when active
-              ...(cat === 'Packages' && filter === 'Packages' ? { color: '#c5a059' } : {}),
-            }}>
+            style={{ background: 'none', border: 'none', borderBottom: filter === cat ? '2px solid #c5a059' : '2px solid transparent', color: filter === cat ? (cat === 'Packages' ? '#c5a059' : '#1a1a1a') : '#999', padding: '14px 16px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '1px', marginBottom: '-2px' }}>
             {cat === 'Packages' ? '🎁 ' : ''}{cat.toUpperCase()}
           </button>
         ))}
       </div>
 
-      {/* CONTENT */}
       <div style={{ padding: '40px 5%' }}>
         {filter === 'Packages' && <PackagesSection />}
         {filter === 'Custom' && <CustomOrder />}
         {filter !== 'Packages' && filter !== 'Custom' && (
           <>
-            {searchQuery && (
-              <p style={{ textAlign: 'center', fontSize: '12px', color: '#888', marginBottom: '24px' }}>
-                {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''} for "<b>{searchQuery}</b>"
-              </p>
-            )}
-            {/* MOBILE-FIRST GRID: 2 cols on mobile, auto-fill on larger screens */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '16px',
-              maxWidth: '1200px',
-              margin: '0 auto',
-            }}>
-              <style>{`
-                @media (min-width: 600px) {
-                  .product-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 20px !important; }
-                }
-                @media (min-width: 900px) {
-                  .product-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important; gap: 28px !important; }
-                }
-              `}</style>
+            {searchQuery && <p style={{ textAlign: 'center', fontSize: '12px', color: '#888', marginBottom: '24px' }}>{filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''} for "<b>{searchQuery}</b>"</p>}
+            <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', maxWidth: '1200px', margin: '0 auto' }}>
               {filteredProducts.length === 0
                 ? <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#bbb', padding: '60px 0' }}>No products found.</p>
                 : filteredProducts.map(item => <ProductCard key={item.id} item={item} addToCart={addToCart} />)
@@ -576,7 +738,7 @@ const Home = ({ addToCart, searchQuery, showPackages, onPackagesSeen }) => {
 
 
 // ============================================================
-// ACCOUNT
+// ACCOUNT + ADMIN
 // ============================================================
 const UserProfile = ({ user }) => {
   const [profile, setProfile] = useState({ phone: '', address: '' });
@@ -601,19 +763,10 @@ const UserProfile = ({ user }) => {
   );
 };
 
-
-// ============================================================
-// ADMIN PANEL
-// ============================================================
 const AdminPanel = () => {
   const [form, setForm] = useState({ name: '', price: '', image: '', stock: 1, category: 'Flowers' });
   const [status, setStatus] = useState('');
-  const upload = async (e) => {
-    e.preventDefault(); setStatus('Adding...');
-    await addDoc(collection(db, "products"), form);
-    setStatus('Product Added!');
-    setForm({ name: '', price: '', image: '', stock: 1, category: 'Flowers' });
-  };
+  const upload = async (e) => { e.preventDefault(); setStatus('Adding...'); await addDoc(collection(db, "products"), form); setStatus('Product Added!'); setForm({ name: '', price: '', image: '', stock: 1, category: 'Flowers' }); };
   return (
     <div style={{ maxWidth: '500px', margin: '50px auto', padding: '30px', border: '1px solid #eee', borderRadius: '8px' }}>
       <h2 style={{ fontFamily: 'Playfair Display' }}>Admin Panel</h2>
@@ -640,9 +793,9 @@ function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
- const [searchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showPackages, setShowPackages] = useState(false);
-  const ADMIN_UID = "8ZcWoKlxRCftEfXa2fYjRkhFIlu2";
+  const ADMIN_UID = "PASTE_YOUR_UID_HERE";
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, u => setUser(u));
@@ -661,41 +814,20 @@ function App() {
         body { font-family: 'Montserrat', sans-serif; margin: 0; }
         .product-card:hover { transform: translateY(-4px); transition: 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        @media (min-width: 600px) { .product-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 20px !important; } }
+        @media (min-width: 900px) { .product-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important; gap: 28px !important; } }
       `}</style>
 
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-
-        <Header
-          user={user}
-          cart={cart}
-          onCartOpen={() => setIsCartOpen(o => !o)}
-          onPackagesClick={() => setShowPackages(true)}
-        />
-
-        <CartDrawer
-          isOpen={isCartOpen}
-          onClose={() => setIsCartOpen(false)}
-          cart={cart}
-          removeFromCart={removeFromCart}
-        />
+        <Header user={user} cart={cart} onCartOpen={() => setIsCartOpen(o => !o)} onPackagesClick={() => setShowPackages(true)} />
+        <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} cart={cart} removeFromCart={removeFromCart} />
 
         <div style={{ flex: 1 }}>
           <Routes>
-            <Route path="/" element={
-              <Home
-                addToCart={addToCart}
-                searchQuery={searchQuery}
-                showPackages={showPackages}
-                onPackagesSeen={handlePackagesSeen}
-              />
-            } />
+            <Route path="/" element={<Home addToCart={addToCart} searchQuery={searchQuery} showPackages={showPackages} onPackagesSeen={handlePackagesSeen} />} />
             <Route path="/account" element={user ? <UserProfile user={user} /> : <Auth />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/admin" element={
-              user && user.uid === ADMIN_UID
-                ? <AdminPanel />
-                : <div style={{ padding: '100px', textAlign: 'center', color: '#888' }}>Admin Access Restricted.</div>
-            } />
+            <Route path="/admin" element={user && user.uid === ADMIN_UID ? <AdminPanel /> : <div style={{ padding: '100px', textAlign: 'center', color: '#888' }}>Admin Access Restricted.</div>} />
           </Routes>
         </div>
 
