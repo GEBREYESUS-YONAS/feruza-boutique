@@ -598,7 +598,7 @@ const PackagesSection = () => (
   <div style={{ padding: '50px 5%', backgroundColor: '#fdfbf7' }}>
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h2 style={{ fontFamily: 'Playfair Display', fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', margin: '0 0 10px' }}>Curated Packages</h2>
+        <h2 style={{ fontFamily: 'Playfair Display', fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', margin: '0 0 10px' }}>Surprise Gift Packages</h2>
         <p style={{ color: '#888', fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase' }}>Thoughtfully assembled for every occasion</p>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '24px' }}>
