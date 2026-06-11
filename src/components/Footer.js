@@ -14,7 +14,7 @@ const Footer = () => {
         Feruza Surprise Delivery • Kampala, Uganda
       </p>
       <div style={{ marginTop: '20px', fontSize: '10px', opacity: 0.5 }}>
-        © 2026 FERUZA BOUTIQUE. ALL RIGHTS RESERVED.
+        © 2026 FERUZA GIFT DELIVERY. ALL RIGHTS RESERVED.
       </div>
     </footer>
   );
